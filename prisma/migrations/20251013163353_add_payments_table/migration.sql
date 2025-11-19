@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE `transactions` MODIFY `paymentMethod` ENUM('KKIAPAY', 'FEDAPAY', 'BANK_TRANSFER', 'CREDIT_CARD', 'MOBILE_MONEY') NOT NULL,
+    MODIFY `paymentProvider` ENUM('KKIAPAY', 'FEDAPAY', 'STRIPE', 'PAYPAL', 'MANUAL') NOT NULL;

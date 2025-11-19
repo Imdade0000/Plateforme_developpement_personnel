@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `content_views` ADD COLUMN `viewedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3);
