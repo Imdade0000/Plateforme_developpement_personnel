@@ -1,6 +1,7 @@
 // app/payment/status/[transactionId]/page.tsx
 import { notFound } from 'next/navigation';
 import { prisma } from '../../../../../lib/db';
+import Link from 'next/link';
 
 interface PageProps {
   params: Promise<{ transactionId: string }>
@@ -78,12 +79,12 @@ export default async function PaymentStatusPage({ params }: PageProps) {
           </div>
 
           {transaction.status === 'COMPLETED' && (
-            <a
+            <link
               href="/content"
               className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors inline-block"
             >
               Accéder au contenu
-            </a>
+            </link>
           )}
 
           {transaction.status === 'FAILED' && (
