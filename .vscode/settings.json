@@ -1,3 +1,8 @@
 {
-    "WillLuke.nextjs.hasPrompted": true
+    "WillLuke.nextjs.hasPrompted": true,
+    "prisma.useWorkspace": true
+    ,
+    // Additional keys to help older/newer Prisma extension variations
+    "prisma.useWorkspacePrisma": true,
+    "prisma.languageServer.useWorkspace": true
 }
