@@ -1,7 +1,17 @@
 // lib/email.ts
-import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { Resend } from "resend";
+
+const getResend = () => {
+  const apiKey = process.env.RESEND_API_KEY;
+
+  if (!apiKey) {
+    console.error("❌ RESEND_API_KEY manquant");
+    return null; // empêcher plantage au build
+  }
+
+  return new Resend(apiKey);
+};
 
 export interface EmailOptions {
   to: string;
@@ -12,26 +22,31 @@ export interface EmailOptions {
 
 export class EmailService {
   static async sendEmail(options: EmailOptions) {
+    const resend = getResend();
+
+    if (!resend) {
+      console.error("❌ Impossible d'envoyer l'email (clé API manquante)");
+      return;
+    }
+
     try {
       const { data, error } = await resend.emails.send({
-        from: options.from || 'Plateforme <onboarding@resend.dev>',
+        from: options.from || process.env.EMAIL_FROM || "onboarding@resend.dev",
         to: options.to,
         subject: options.subject,
         html: options.html,
       });
 
-      if (error) {
-        console.error('Erreur envoi email:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log('✅ Email envoyé avec succès:', data?.id);
+      console.log("✅ Email envoyé :", data?.id);
       return data;
     } catch (error) {
-      console.error('❌ Erreur envoi email:', error);
+      console.error("❌ Erreur envoi email :", error);
       throw error;
     }
   }
+
 
   // Email de bienvenue
   static async sendWelcomeEmail(to: string, name: string | null) {
