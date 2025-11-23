@@ -44,11 +44,28 @@ export interface FedaPayVerificationResponse {
   updatedAt: string;
 }
 
+const FEDAPAY_ENABLED = process.env.FEDAPAY_ENABLED === 'true';
+
 export class FedaPayService {
   private config: FedaPayConfig;
   private baseURL: string;
+  private disabled: boolean = false;
 
   constructor(config?: Partial<FedaPayConfig>) {
+    if (!FEDAPAY_ENABLED) {
+      // Service désactivé — on initialise avec des valeurs vides et on évite de valider
+      this.disabled = true;
+      this.config = {
+        publicKey: '',
+        secretKey: '',
+        token: '',
+        mode: 'test',
+        ...config
+      };
+      this.baseURL = '';
+      return;
+    }
+
     this.config = {
       publicKey: process.env.FEDAPAY_PUBLIC_KEY!,
       secretKey: process.env.FEDAPAY_SECRET_KEY!,
@@ -58,7 +75,7 @@ export class FedaPayService {
     };
 
     // URLs FedaPay
-    this.baseURL = this.config.mode === 'test' 
+    this.baseURL = this.config.mode === 'test'
       ? 'https://sandbox-api.fedapay.com/v1'
       : 'https://api.fedapay.com/v1';
 
@@ -66,6 +83,8 @@ export class FedaPayService {
   }
 
   private validateConfig(): void {
+    if (this.disabled) return;
+
     const required = ['publicKey', 'secretKey', 'token'];
     for (const key of required) {
       if (!this.config[key as keyof FedaPayConfig]) {
@@ -100,6 +119,10 @@ export class FedaPayService {
    * Initie un paiement FedaPay
    */
   async initiatePayment(params: FedaPayPaymentParams): Promise<FedaPayPaymentResponse> {
+    if (this.disabled) {
+      throw new Error('FedaPay est désactivé sur cette instance (FEDAPAY_ENABLED != true)');
+    }
+
     try {
       const { amount, currency, description, customer, metadata, callbackUrl, redirectUrl } = params;
 
@@ -196,6 +219,10 @@ export class FedaPayService {
    * Vérifie le statut d'un paiement FedaPay
    */
   async verifyPayment(transactionId: string): Promise<FedaPayVerificationResponse> {
+    if (this.disabled) {
+      throw new Error('FedaPay est désactivé sur cette instance (FEDAPAY_ENABLED != true)');
+    }
+
     try {
       if (!transactionId) {
         throw new Error('ID de transaction requis');
@@ -261,6 +288,10 @@ export class FedaPayService {
    * Rembourse un paiement FedaPay
    */
   async refundPayment(transactionId: string, amount?: number): Promise<any> {
+    if (this.disabled) {
+      throw new Error('FedaPay est désactivé sur cette instance (FEDAPAY_ENABLED != true)');
+    }
+
     try {
       const payload: any = {
         transaction_id: transactionId
@@ -296,6 +327,11 @@ export class FedaPayService {
    */
   verifyWebhookSignature(payload: string, signature: string): boolean {
     try {
+      if (this.disabled) {
+        console.warn('Vérification webhook FedaPay ignorée — FedaPay désactivé');
+        return false;
+      }
+
       if (!signature) {
         console.error('Signature manquante dans la requête FedaPay');
         return false;
@@ -321,7 +357,12 @@ export class FedaPayService {
    * Retourne la configuration actuelle (pour le debug)
    */
   getConfig() {
+    if (this.disabled) {
+      return { enabled: false };
+    }
+
     return {
+      enabled: true,
       mode: this.config.mode,
       baseURL: this.baseURL,
       publicKey: this.config.publicKey ? '***' + this.config.publicKey.slice(-4) : 'non définie'
