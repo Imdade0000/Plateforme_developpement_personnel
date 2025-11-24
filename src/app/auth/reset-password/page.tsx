@@ -1,11 +1,12 @@
 // app/auth/reset-password/page.tsx
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
-export default function ResetPasswordPage() {
+// Composant qui utilise useSearchParams - doit être dans Suspense
+function ResetPasswordContent() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -19,7 +20,6 @@ export default function ResetPasswordPage() {
     const tokenParam = searchParams.get('token')
     if (tokenParam) {
       setToken(tokenParam)
-      // Ici, vous pourriez vérifier la validité du token
       setIsValidToken(true)
     }
   }, [searchParams])
@@ -305,16 +305,27 @@ export default function ResetPasswordPage() {
           animation: scale-in 0.3s ease-out;
         }
         
-        /* Styles pour améliorer la lisibilité */
         input::placeholder {
           color: #9CA3AF;
         }
         
-        /* Assurer que le texte est visible dans tous les champs */
         .text-gray-900 {
           color: #111827;
         }
       `}</style>
     </>
+  )
+}
+
+// Composant principal avec Suspense
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-blue-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      </div>
+    }>
+      <ResetPasswordContent />
+    </Suspense>
   )
 }
