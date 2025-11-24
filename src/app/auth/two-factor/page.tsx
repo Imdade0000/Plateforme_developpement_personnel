@@ -1,11 +1,12 @@
 // app/auth/two-factor/page.tsx
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-export default function TwoFactorPage() {
+// Composant qui utilise useSearchParams
+function TwoFactorContent() {
   const [twoFactorCode, setTwoFactorCode] = useState('')
   const [backupCode, setBackupCode] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -250,16 +251,27 @@ export default function TwoFactorPage() {
           animation: shake 0.5s ease-in-out;
         }
         
-        /* Styles pour améliorer la lisibilité */
         input::placeholder {
           color: #9CA3AF;
         }
         
-        /* Assurer que le texte est visible dans tous les champs */
         .text-gray-900 {
           color: #111827;
         }
       `}</style>
     </div>
+  )
+}
+
+// Composant principal avec Suspense
+export default function TwoFactorPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <TwoFactorContent />
+    </Suspense>
   )
 }
